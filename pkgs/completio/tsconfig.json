@@ -5,6 +5,7 @@
     "${configDir}/src/**/*.ts",
     "${configDir}/scripts/**/*.ts",
     "${configDir}/tests/**/*.ts",
+    "${configDir}/examples/**/*.ts",
     "${configDir}/package.json"
   ],
   "compilerOptions": {

@@ -9,6 +9,10 @@
   "exports": {
     ".": "./src/index.ts"
   },
+  "dependencies": {
+    "ai": "^6.0.116",
+    "zod": "^4.3.6"
+  },
   "devDependencies": {
     "@types/node": "^25.5.0",
     "@typescript/native-preview": "7.0.0-dev.20260313.1"

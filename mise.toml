@@ -1,3 +1,11 @@
 [tools]
+# Stack
 node = "lts"
 pnpm = "latest"
+
+# Tools
+fnox = "latest"
+opencode = "latest"
+
+[env]
+_.source = "scripts/env.sh"
