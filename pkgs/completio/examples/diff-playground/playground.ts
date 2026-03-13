@@ -10,28 +10,27 @@ const ProviderMetadata = z.object({
 });
 
 const latestChanges = [
-  `--- a/src/utils.ts
+  `<change>
+--- a/src/utils.ts
 +++ b/src/utils.ts
 @@ -0,0 +1,3 @@
 +export function fullName(firstName: string, lastName?: string): string {
 +  return lastName ? \`\${firstName} \${lastName}\` : firstName;
-+}`,
++}
+</change>`,
 ];
-
-const code = `--- a/src/greeting.ts
-+++ b/src/greeting.ts
-@@ -0,0 +1 @@
-+func`;
 
 const prompt = `Given recent changes:
 
+<changes>
 ${latestChanges.join("\n\n")}
+</changes>
 
-What the most logical completion for the following code state would be?
+Complete with the most likely code continuation starting from <cursor> without any additional text or formatting, just plain code completion:
 
-${code}
-
-Answer with the most likely completion in plain TypeScript, without any additional text or formatting.
+<code path="src/greeting.ts"
+export func<cursor>
+</code>
 `;
 
 const models = [
@@ -39,19 +38,16 @@ const models = [
   "openai/gpt-oss-120b",
   "openai/gpt-5-nano",
   "openai/gpt-5-mini",
+  "openai/gpt-5.1-codex-mini",
   "google/gemini-2.0-flash-lite",
   "google/gemini-2.5-flash-lite",
   "google/gemini-3.1-flash-lite-preview",
   "meta/llama-3.1-8b",
   "xai/grok-4.1-fast-non-reasoning",
-  "xai/grok-code-fast-1",
   "alibaba/qwen-3-14b",
   "alibaba/qwen-3-30b",
   "alibaba/qwen-3-32b",
-  "alibaba/qwen-3-235b",
-  "alibaba/qwen3.5-flash",
   "mistral/ministral-3b",
-  "zai/glm-4.7-flashx",
 ];
 
 interface Result {
@@ -98,6 +94,6 @@ for (const model of models) {
 
 await fs.mkdir(RESULTS_DIR, { recursive: true });
 await fs.writeFile(
-  path.resolve(RESULTS_DIR, String(Date.now())),
+  path.resolve(RESULTS_DIR, `${Date.now()}.json`),
   JSON.stringify({ prompt, results }, null, 2),
 );
