@@ -1,0 +1,43 @@
+{
+  "$schema": "https://json.schemastore.org/tsconfig",
+  "include": [
+    "${configDir}/*.ts",
+    "${configDir}/src/**/*.ts",
+    "${configDir}/scripts/**/*.ts",
+    "${configDir}/tests/**/*.ts",
+    "${configDir}/package.json"
+  ],
+  "compilerOptions": {
+    // Resolve
+    "rootDir": "${configDir}/",
+    "paths": {},
+    // Output
+    "target": "esnext",
+    "outDir": "${configDir}/.ts/",
+    "tsBuildInfoFile": "${configDir}/.ts/tsconfig.tsbuildinfo",
+    "emitDeclarationOnly": true,
+    // Modules
+    "module": "nodenext",
+    "moduleResolution": "nodenext",
+    "isolatedModules": true,
+    "moduleDetection": "force", // Stop treating files wtypithout imports/exports as single global scripts
+    "allowImportingTsExtensions": false, // Don't allow importing .ts files, as we need to enable emitting.
+    "verbatimModuleSyntax": true, // Enforce type-only imports
+    "resolveJsonModule": true,
+    // Env
+    "lib": ["ESNext"],
+    "types": ["node"],
+    "erasableSyntaxOnly": true, // Disallow using using runtime TS features
+    // Checks
+    "skipLibCheck": true,
+    "strict": true,
+    "noUncheckedIndexedAccess": true,
+    "exactOptionalPropertyTypes": true,
+    "forceConsistentCasingInFileNames": true,
+    "noImplicitOverride": true, // Force using override modifier in classes
+    // Build
+    "incremental": true,
+    // Project references
+    "composite": true
+  }
+}
