@@ -20,42 +20,104 @@ const latestChanges = [
 </change>`,
 ];
 
-const prompt = `Given recent changes:
+const prompt = `
+You're code completion agent helping a humand developer to write code.
 
-<changes>
+Considering recent changes the human did (diffs in <change> meta tags) predict code completion for <current> file. Don't add any explanation, formatting, or meta tags. Answer with just code that have to be added right after <cursor>. Don't include code before or anfter.
+
+Don't include changes that you would made before <cursor>. If recent changes include something relevant or that can be useful for the current file, utilize that.
+
+Example (completing \`const helloW\`):
+
+<example good>
+orld = "Hello, world!";
+</example
+
+<example bad why="full code">
+const helloWorld = "Hello, world!";
+</example>
+
+<example bad why="Markdown formatting">
+\`\`\`ts
+orld = "Hello, world!";
+\`\`\`
+</example>
+
+<example bad why="extra text">
+orld = "Hello, world!";
+
+It is likely iconic "Hello, world!" const.
+</example>
+
 ${latestChanges.join("\n\n")}
-</changes>
 
-Complete with the most likely code continuation starting from <cursor> without any additional text or formatting, just plain code completion:
-
-<code path="src/greeting.ts"
+<current path="src/greeting.ts"
 export func<cursor>
-</code>
+</current>
 `;
 
 const models = [
   "openai/gpt-oss-20b",
   "openai/gpt-oss-120b",
-  "openai/gpt-5-nano",
-  "openai/gpt-5-mini",
-  "openai/gpt-5.1-codex-mini",
-  "google/gemini-2.0-flash-lite",
-  "google/gemini-2.5-flash-lite",
+  "openai/o4-mini",
+  "openai/gpt-4.1-nano",
+  "openai/gpt-4.1-mini",
+  "openai/gpt-4.1",
+  "openai/gpt-4o",
+  // "openai/gpt-5-nano",
+  // "openai/gpt-5-mini",
+  "openai/gpt-5.1-thinking",
+  // "openai/gpt-5.1-instant",
+  // "openai/gpt-5.1-codex",
+  // "openai/gpt-5.1-codex-mini",
+  "openai/gpt-5.2",
+  // "anthropic/claude-3-haiku",
+  "anthropic/claude-sonnet-4",
+  // "anthropic/claude-haiku-4.5",
+  "anthropic/claude-sonnet-4.5",
+  // "google/gemini-2.0-flash",
+  // "google/gemini-2.0-flash-lite",
+  // "google/gemini-2.5-flash",
+  // "google/gemini-2.5-flash-lite",
+  "google/gemini-3-flash",
   "google/gemini-3.1-flash-lite-preview",
-  "meta/llama-3.1-8b",
+  "xai/grok-3-mini",
+  "xai/grok-3",
+  "xai/grok-4-fast-non-reasoning",
   "xai/grok-4.1-fast-non-reasoning",
-  "alibaba/qwen-3-14b",
-  "alibaba/qwen-3-30b",
-  "alibaba/qwen-3-32b",
-  "mistral/ministral-3b",
+  // "xai/grok-code-fast-1",
+  // "nvidia/nemotron-nano-9b-v2",
+  // "nvidia/nemotron-nano-12b-v2-vl",
+  // "nvidia/nemotron-3-nano-30b-a3b",
+  "mistral/devstral-small-2",
+  "mistral/codestral",
+  "mistral/devstral-2",
+  "mistral/mistral-small",
+  "mistral/mistral-nemo",
+  "deepseek/deepseek-v3.1",
+  "deepseek/deepseek-v3.1-terminus",
+  "deepseek/deepseek-v3.2",
+  "moonshotai/kimi-k2-turbo",
+  "xiaomi/mimo-v2-flash",
 ];
 
-interface Result {
+type Result = ResultError | ResultSuccess;
+
+interface ResultError {
+  status: "error";
+  model: string;
+  timingSec: number;
+  error: string;
+}
+
+interface ResultSuccess {
+  status: "success";
   model: string;
   cost: string;
   timingSec: number;
   inputTokens: number | undefined;
   outputTokens: number | undefined;
+  output: string;
 }
 
 const results: Result[] = [];
@@ -65,31 +127,69 @@ const WIDTH = 80;
 
 for (const model of models) {
   console.log(`\n=== ${model} `.padEnd(WIDTH, "="));
-
   const started = Date.now();
-  const completion = await generateText({ model, prompt });
-  const timing = Date.now() - started;
+  const calcTimingSec = () =>
+    parseFloat(((Date.now() - started) / 1000).toFixed(2));
 
-  const timingSec = parseFloat((timing / 1000).toFixed(2));
-  const { inputTokens, outputTokens } = completion.totalUsage;
-  const metadata = ProviderMetadata.parse(completion.providerMetadata);
-  const { cost } = metadata.gateway;
+  try {
+    const completion = await generateText({
+      model,
+      prompt,
+      providerOptions: {
+        gateway: {
+          order: ["azure", "openai", "groq", "bedroock"],
+        },
 
-  results.push({
-    model,
-    cost,
-    timingSec,
-    inputTokens,
-    outputTokens,
-  });
+        openai: {
+          reasoningEffort: "none",
+          // TODO: Consider trying if it keeps explaining itself:
+          // textVerbosity: "low",
+        },
+        antrhopic: {
+          thinking: { type: "enabled", effort: "low" },
+          speed: "fast",
+        },
+      },
+    });
 
-  console.log(
-    `\n${timingSec}s · $${cost} · input ${inputTokens || "?"} · output ${outputTokens || "?"}\n`,
-  );
+    const timingSec = calcTimingSec();
 
-  console.log("-".repeat(WIDTH));
-  console.log(`${completion.output}`);
-  console.log("=".repeat(WIDTH) + "\n");
+    const {
+      output,
+      totalUsage: { inputTokens, outputTokens },
+    } = completion;
+    const metadata = ProviderMetadata.parse(completion.providerMetadata);
+    const { cost } = metadata.gateway;
+
+    results.push({
+      status: "success",
+      model,
+      cost,
+      timingSec,
+      inputTokens,
+      outputTokens,
+      output,
+    });
+
+    console.log(
+      `\n${timingSec}s · $${cost} · input ${inputTokens || "?"} · output ${outputTokens || "?"}\n`,
+    );
+
+    console.log("-".repeat(WIDTH));
+    console.log(`${output}`);
+    console.log("=".repeat(WIDTH) + "\n");
+  } catch (err) {
+    const timingSec = calcTimingSec();
+
+    results.push({
+      status: "error",
+      model,
+      timingSec,
+      error: String(err),
+    });
+
+    console.error(`\n!!! Failed to generate with ${model}: ${err}\n`);
+  }
 }
 
 await fs.mkdir(RESULTS_DIR, { recursive: true });
