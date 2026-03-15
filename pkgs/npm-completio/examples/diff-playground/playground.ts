@@ -1,6 +1,7 @@
 import { generateText } from "ai";
 import fs from "node:fs/promises";
 import path from "node:path";
+import { fileURLToPath } from "node:url";
 import { z } from "zod";
 
 const ProviderMetadata = z.object({
@@ -122,7 +123,8 @@ interface ResultSuccess {
 
 const results: Result[] = [];
 
-const RESULTS_DIR = "results";
+const EXAMPLE_DIR = path.dirname(fileURLToPath(import.meta.url));
+const RESULTS_DIR = path.join(EXAMPLE_DIR, "results");
 const WIDTH = 80;
 
 for (const model of models) {
@@ -194,6 +196,6 @@ for (const model of models) {
 
 await fs.mkdir(RESULTS_DIR, { recursive: true });
 await fs.writeFile(
-  path.resolve(RESULTS_DIR, `${Date.now()}.json`),
+  path.join(RESULTS_DIR, `${Date.now()}.json`),
   JSON.stringify({ prompt, results }, null, 2),
 );
