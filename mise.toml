@@ -2,6 +2,7 @@
 # Stack
 node = "lts"
 pnpm = "latest"
+rust = "latest"
 
 # Tools
 fnox = "latest"
@@ -9,3 +10,7 @@ opencode = "latest"
 
 [env]
 _.source = "scripts/env.sh"
+
+[settings]
+experimental = true
+idiomatic_version_file_enable_tools = ["rust"] # Use rust-toolchain.toml

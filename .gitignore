@@ -4,5 +4,8 @@ node_modules/
 # TS
 .ts/
 
+# Rust
+target/
+
 # Temp
 tmp/
