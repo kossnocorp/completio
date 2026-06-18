@@ -10,7 +10,7 @@
     "types:watch": "tsgo --build --watch"
   },
   "devDependencies": {
-    "@typescript/native-preview": "7.0.0-dev.20260313.1",
+    "@typescript/native-preview": "7.0.0-dev.20260330.1",
     "oxfmt": "^0.40.0",
     "oxlint": "^1.55.0"
   }
